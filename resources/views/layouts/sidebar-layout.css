@@ -1,0 +1,46 @@
+/* Equal height layout fix */
+.left-sidebar,
+.right-sidebar,
+.main-content {
+  height: calc(100vh - 56px); /* adjust for navbar height */
+  overflow-y: auto;
+}
+
+/* Remove scrollbar style for clean look */
+.left-sidebar::-webkit-scrollbar,
+.right-sidebar::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left-sidebar::-webkit-scrollbar-thumb,
+.right-sidebar::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb {
+  background-color: #c7c7c7;
+  border-radius: 10px;
+}
+
+/* Main layout background */
+body {
+  background-color: #f5f6f8;
+}
+
+/* Sidebar link hover effect */
+.sidebar-link {
+  color: #333;
+  padding: 8px 0;
+  border-radius: 6px;
+}
+
+.sidebar-link:hover {
+  background-color: #f0f2f5;
+  padding-left: 8px;
+  transition: 0.3s;
+}
+
+/* Center main content nicely */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+}

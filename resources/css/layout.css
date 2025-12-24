@@ -1,0 +1,65 @@
+body {
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #1877f2;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar input {
+    border-radius: 20px;
+    border: none;
+    padding: 5px 15px;
+}
+
+/* Layout */
+.main-content {
+    margin-top: 20px;
+}
+
+.sidebar,
+.rightbar,
+.feed {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+
+.sidebar {
+    position: sticky;
+    top: 70px;
+    height: 85vh;
+    overflow-y: auto;
+}
+
+.rightbar {
+    position: sticky;
+    top: 70px;
+    height: 85vh;
+    overflow-y: auto;
+}
+
+/* Post Box */
+.post-box textarea {
+    resize: none;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    width: 100%;
+    padding: 10px;
+}
+
+.post {
+    margin-bottom: 20px;
+}
+
+.post .card-body {
+    background: #fff;
+}
