@@ -74,30 +74,145 @@
 
 
 
-{{-- ================= FOOTER ================= --}}
-<div class="post-footer">
+{{-- POST FOOTER SECTION --}}
+<div class="post-footer" data-post-id="{{ $post->id }}">
 
     {{-- LIKE COUNT --}}
-    <div class="like-count text-muted mb-2">
-        👍 {{ $post->likes_count ?? 4 }}
+    @php
+        $likesCount = $post->likes->count();
+        $liked = $post->isLikedBy(auth()->user());
+    @endphp
+
+    <div class="post-stats mb-2">
+        @if($likesCount > 0)
+            <div class="like-count">
+                <span class="like-emoji">👍</span>
+                <span class="like-text">
+                    @if($liked)
+                        @if($likesCount == 1)
+                            You
+                        @elseif($likesCount == 2)
+                            You and 1 other
+                        @else
+                            You and {{ $likesCount - 1 }} others
+                        @endif
+                    @else
+                        {{ $likesCount }}
+                    @endif
+                </span>
+            </div>
+        @endif
+
+        @if($post->comments->count() > 0)
+            <div class="comment-count">
+                <span>{{ $post->comments->count() }} comments</span>
+            </div>
+        @endif
     </div>
 
-    <hr class="m-0">
+    <hr>
 
     {{-- ACTION BUTTONS --}}
-    <div class="post-actions d-flex justify-content-between text-center">
+    <div class="post-actions">
+        <button class="action-btn like-btn {{ $liked ? 'active' : '' }}" data-post-id="{{ $post->id }}">
+            <i class="like-icon {{ $liked ? 'fas' : 'far' }} fa-thumbs-up"></i>
+            <span>{{ $liked ? 'Liked' : 'Like' }}</span>
+        </button>
 
-        <a href="#" class="post-action">
-            <i class="bi bi-hand-thumbs-up"></i> Like
-        </a>
+        <button class="action-btn comment-toggle-btn" data-post-id="{{ $post->id }}">
+            <i class="far fa-comment"></i>
+            <span>Comment</span>
+        </button>
 
-        <a href="#" class="post-action">
-            <i class="bi bi-chat"></i> Comment
-        </a>
+        <button class="action-btn share-btn">
+            <i class="fas fa-share"></i>
+            <span>Share</span>
+        </button>
+    </div>
 
-        <a href="#" class="post-action">
-            <i class="bi bi-share"></i> Share
-        </a>
+    {{-- COMMENT INPUT AREA (HIDDEN BY DEFAULT) --}}
+        <div class="comment-input-area" id="comment-input-{{ $post->id }}" style="display: none;">
+            <div class="comment-input-wrapper">
+                <div class="current-user-avatar">
+                    @if(auth()->user()->profile_photo)
+                        <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}"
+                             alt="{{ auth()->user()->name }}"
+                             width="40"
+                             height="40">
+                    @else
+                        <i class="fas fa-user-circle"></i>
+                    @endif
+                </div>
+
+                <form class="comment-form" data-post-id="{{ $post->id }}">
+                    <div class="comment-form-header">
+                        <span class="current-user-name">{{ auth()->user()->name }}</span>
+                    </div>
+                    <div class="textarea-wrapper">
+                        <textarea
+                            name="content"
+                            class="comment-textarea"
+                            placeholder="Comment as {{ auth()->user()->name }}..."
+                            rows="2"
+                            data-placeholder-base="Comment as {{ auth()->user()->name }}..."></textarea>
+                        <button type="submit" class="send-comment-btn" title="Post comment">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    {{-- CHARACTER COUNTER (OPTIONAL) --}}
+                    <div class="char-counter" style="display: none; font-size: 12px; color: #65676b; text-align: right; margin-top: 5px;">
+                        <span class="char-count">0</span>/5000
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    {{-- COMMENTS SECTION --}}
+    <div class="comments-section" id="comments-{{ $post->id }}">
+
+        {{-- SHOW FIRST COMMENT ONLY --}}
+        @if($post->comments->count() > 0)
+            <div class="comments-list">
+                @foreach($post->comments->take(1) as $comment)
+                    <div class="comment-item" data-id="{{ $comment->id }}">
+                        <div class="comment-avatar">
+                            @if($comment->user->profile_photo)
+                                <img src="{{ asset('storage/' . $comment->user->profile_photo) }}"
+                                     alt="{{ $comment->user->name }}"
+                                     width="32"
+                                     height="32">
+                            @else
+                                <i class="fas fa-user-circle"></i>
+                            @endif
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <strong class="comment-username">{{ $comment->user->name }}</strong>
+                                <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
+                            </div>
+                            <div class="comment-text">{{ $comment->content }}</div>
+                            @if(auth()->id() == $comment->user_id)
+                                <button class="delete-comment" data-comment-id="{{ $comment->id }}">
+                                    Delete
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- COMMENT BUTTONS (VIEW MORE/SHOW LESS) --}}
+            @if($post->comments->count() > 1)
+                <div class="comment-buttons">
+                    <button class="view-more-comments" data-post-id="{{ $post->id }}">
+                        <i class="fas fa-chevron-down me-1"></i> View more comments
+                    </button>
+                    {{-- Show Less button will be added dynamically --}}
+                </div>
+            @endif
+        @endif
+
+
 
     </div>
 

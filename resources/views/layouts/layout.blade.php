@@ -131,6 +131,7 @@
     <script src="{{ asset('js/posts-lightbox.js') }}"></script>
     <script src="{{ asset('js/posts.js') }}"></script>
     <script src="{{ asset('js/video-seek-fix.js') }}"></script>
+    <script src="{{ asset('js/post-interaction.js') }}" defer></script>
 
 
 

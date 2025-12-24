@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PostInteractionController;
+
 use Illuminate\Support\Facades\Route;
 
 
@@ -37,5 +39,16 @@ Route::middleware(['auth' , 'approved'])->group(function(){
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
 });
+
+
+Route::middleware('auth')->group(function(){
+
+    Route::post('/posts/{post}/like', [PostInteractionController::class, 'like']);
+    Route::post('/posts/{post}/comment', [PostInteractionController::class, 'comment']);
+    Route::get('/posts/{post}/comments/{offset?}', [PostInteractionController::class, 'getComments']);
+    Route::delete('/comments/{comment}', [PostInteractionController::class, 'deleteComment']);
+
+});
+
 
 require __DIR__.'/auth.php';
