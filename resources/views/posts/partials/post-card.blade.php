@@ -24,6 +24,15 @@
                 $ext = strtolower(pathinfo($post->media, PATHINFO_EXTENSION));
                 $images = ['jpg','jpeg','png','gif','webp'];
                 $videos = ['mp4','webm','ogg'];
+                
+                // Proper MIME types for better Windows compatibility
+                $mimeTypes = [
+                    'mp4' => 'video/mp4',
+                    'webm' => 'video/webm',
+                    'ogg' => 'video/ogg',
+                    'ogv' => 'video/ogg'
+                ];
+                $videoMimeType = $mimeTypes[$ext] ?? 'video/' . $ext;
             @endphp
 
             <div class="post-media">
@@ -37,7 +46,7 @@
                         preload="metadata"
                         playsinline
                     >
-                        <source src="{{ asset('storage/media_post/'.$post->media) }}" type="video/{{ $ext }}">
+                        <source src="{{ asset('storage/media_post/'.$post->media) }}" type="{{ $videoMimeType }}">
                         Your browser does not support the video tag.
                     </video>
 
