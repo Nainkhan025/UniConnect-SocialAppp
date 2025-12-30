@@ -41,14 +41,13 @@ Route::middleware(['auth' , 'approved'])->group(function(){
 });
 
 
-Route::middleware('auth')->group(function(){
-
+Route::middleware('auth')->group(function () {
+    // Post interactions
     Route::post('/posts/{post}/like', [PostInteractionController::class, 'like']);
+    Route::get('/posts/{post}/comments', [PostInteractionController::class, 'comments']);
+    Route::get('/posts/{post}/likers', [PostInteractionController::class, 'likers']);
     Route::post('/posts/{post}/comment', [PostInteractionController::class, 'comment']);
-    Route::get('/posts/{post}/comments/{offset?}', [PostInteractionController::class, 'getComments']);
     Route::delete('/comments/{comment}', [PostInteractionController::class, 'deleteComment']);
-
 });
-
 
 require __DIR__.'/auth.php';

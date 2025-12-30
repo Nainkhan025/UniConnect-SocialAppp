@@ -2,205 +2,122 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\PostModel;
 use App\Models\Like;
 use App\Models\Comment;
+use Illuminate\Http\Request;
 
 class PostInteractionController extends Controller
 {
-    // LIKE TOGGLE
     public function like(PostModel $post)
     {
-        try {
-            $user = auth()->user();
+        $like = $post->likes()->where('user_id', auth()->id())->first();
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please login first'
-                ], 401);
-            }
+        if ($like) {
+            $like->delete();
+            $liked = false;
+        } else {
+            Like::create(['user_id' => auth()->id(), 'post_id' => $post->id]);
+            $liked = true;
+        }
 
-            $existingLike = $post->likes()->where('user_id', $user->id)->first();
+        $likes = $post->likes()->with('user')->get();
 
-            if ($existingLike) {
-                $existingLike->delete();
-                $liked = false;
-                $message = 'Like removed';
-            } else {
-                Like::create([
-                    'user_id' => $user->id,
-                    'post_id' => $post->id
-                ]);
-                $liked = true;
-                $message = 'Post liked';
-            }
+        return response()->json([
+            'success' => true,
+            'liked' => $liked,
+            'count' => $likes->count(),
+            'likes' => $likes->map(fn ($l) => [
+                'id' => $l->id,
+                'user_id' => $l->user_id,
+                'user_name' => $l->user->name,
+                'user_avatar' => $l->user->profile_photo ? asset('storage/' . $l->user->profile_photo) : null
+            ])
+        ]);
+    }
 
-            $count = $post->likes()->count();
-            $text = $this->likeText($count, $liked);
-
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'liked' => $liked,
-                'count' => $count,
-                'text' => $text
+    public function likers(PostModel $post)
+    {
+        $likes = $post->likes()
+            ->with('user')
+            ->latest()
+            ->get()
+            ->map(fn ($l) => [
+                'id' => $l->id,
+                'user_id' => $l->user_id,
+                'user_name' => $l->user->name,
+                'user_avatar' => $l->user->profile_photo ? asset('storage/' . $l->user->profile_photo) : null
             ]);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'likes' => $likes,
+            'count' => $likes->count()
+        ]);
     }
 
-    private function likeText($count, $liked)
+    public function comments(PostModel $post)
     {
-        if ($count === 0) return 'Like';
+        $comments = $post->comments()
+            ->with('user')
+            ->latest()
+            ->get()
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'user_id' => $c->user_id,
+                'user_name' => $c->user->name,
+                'user_avatar' => $c->user->profile_photo ? asset('storage/' . $c->user->profile_photo) : null,
+                'content' => $c->content,
+                'created_at' => $c->created_at->diffForHumans()
+            ]);
 
-        if ($liked) {
-            if ($count === 1) return 'You like this';
-            if ($count === 2) return 'You and 1 other';
-            return 'You and ' . ($count - 1) . ' others';
-        }
+        $likes = $post->likes()->with('user')->get();
+        $isLiked = $post->likes()->where('user_id', auth()->id())->exists();
 
-        if ($count === 1) return '1 like';
-        return $count . ' likes';
+        return response()->json([
+            'success' => true,
+            'comments' => $comments,
+            'likes_count' => $likes->count(),
+            'is_liked' => $isLiked,
+            'likes' => $likes->map(fn ($l) => [
+                'id' => $l->id,
+                'user_id' => $l->user_id,
+                'user_name' => $l->user->name,
+                'user_avatar' => $l->user->profile_photo ? asset('storage/' . $l->user->profile_photo) : null
+            ])
+        ]);
     }
 
-    // ADD COMMENT
     public function comment(Request $request, PostModel $post)
     {
-        try {
-            $user = auth()->user();
+        $request->validate(['content' => 'required|max:5000']);
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please login first'
-                ], 401);
-            }
+        $comment = Comment::create([
+            'user_id' => auth()->id(),
+            'post_id' => $post->id,
+            'content' => $request->content
+        ]);
 
-            // Simple validation
-            $content = trim($request->content);
-            if (empty($content)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Comment cannot be empty'
-                ], 400);
-            }
+        $comment->load('user');
 
-            // Create comment
-            $comment = Comment::create([
-                'user_id' => $user->id,
-                'post_id' => $post->id,
-                'content' => $content
-            ]);
-
-            // Get fresh comment with user data
-            $comment->load('user');
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment posted',
-                'comment' => [
-                    'id' => $comment->id,
-                    'user_id' => $comment->user_id,
-                    'user_name' => $comment->user->name,
-                    'user_avatar' => $this->getUserAvatar($comment->user),
-                    'content' => $comment->content,
-                    'created_at' => $comment->created_at->diffForHumans(),
-                    'can_delete' => true
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'comment' => [
+                'id' => $comment->id,
+                'user_id' => $comment->user_id,
+                'user_name' => $comment->user->name,
+                'user_avatar' => $comment->user->profile_photo ? asset('storage/' . $comment->user->profile_photo) : null,
+                'content' => $comment->content,
+                'created_at' => 'Just now'
+            ]
+        ]);
     }
 
-    // DELETE COMMENT
     public function deleteComment(Comment $comment)
     {
-        try {
-            $user = auth()->user();
+        abort_if(auth()->id() !== $comment->user_id, 403);
+        $comment->delete();
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please login first'
-                ], 401);
-            }
-
-            // Check permission
-            if ($user->id !== $comment->user_id && !$user->is_admin) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized'
-                ], 403);
-            }
-
-            $comment->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment deleted'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // GET MORE COMMENTS
-    public function getComments(PostModel $post, $offset = 0)
-    {
-        try {
-            $comments = $post->comments()
-                ->with('user')
-                ->latest()
-                ->skip($offset)
-                ->take(5)
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'comments' => $comments->map(function($comment) {
-                    return [
-                        'id' => $comment->id,
-                        'user_id' => $comment->user_id,
-                        'user_name' => $comment->user->name,
-                        'user_avatar' => $this->getUserAvatar($comment->user),
-                        'content' => $comment->content,
-                        'created_at' => $comment->created_at->diffForHumans(),
-                        'can_delete' => auth()->id() === $comment->user_id
-                    ];
-                }),
-                'has_more' => $post->comments()->count() > ($offset + 5)
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // Helper to get user avatar
-    private function getUserAvatar($user)
-    {
-        if ($user->profile_photo) {
-            return asset('storage/' . $user->profile_photo);
-        }
-        return null; // Will use default icon in frontend
+        return response()->json(['success' => true]);
     }
 }
