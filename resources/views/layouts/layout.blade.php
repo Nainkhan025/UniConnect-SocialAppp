@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    //navbar
+
     @include('layouts.navbar')
 
 
@@ -132,6 +132,7 @@
     <script src="{{ asset('js/posts.js') }}"></script>
     <script src="{{ asset('js/video-seek-fix.js') }}"></script>
     <script src="{{ asset('js/post-interaction.js') }}" defer></script>
+    <script src="{{ asset('js/create-post.js') }}" defer></script>
     <script>
         window.authUserId = {{ auth()->id() }};
     </script>
