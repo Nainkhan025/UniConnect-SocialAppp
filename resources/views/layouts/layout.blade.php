@@ -49,6 +49,14 @@
                             <a href="#" class="btn btn-outline-primary btn-sm mt-3 w-100">
                                 View Profile
                             </a>
+
+                            <!-- Logout Button -->
+                            <form method="POST" action="{{ route('logout') }}" class="mt-2">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -76,6 +84,15 @@
                             <a href="#" class="d-flex align-items-center text-decoration-none sidebar-link">
                                 <i class="bi bi-question-circle fs-5 me-3 text-primary"></i> FAQs
                             </a>
+                        </li>
+
+                        <li class="mb-3 mt-4 pt-3 border-top">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="d-flex align-items-center text-decoration-none sidebar-link border-0 bg-transparent w-100 text-start p-0" style="color: #dc3545;">
+                                    <i class="bi bi-box-arrow-right fs-5 me-3" style="color: #dc3545;"></i> Logout
+                                </button>
+                            </form>
                         </li>
                     </ul>
 
